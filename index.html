@@ -20,7 +20,7 @@
         .day-btn.completed::after { content: '✓'; position: absolute; top: -2px; right: 2px; font-size: 8px; color: #4ade80; }
         
         .glass { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid #222; }
-        .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 1.5rem; transition: all 0.3s; height: 100%; }
+        .card { background: #0a0a0a; border: 1px solid #1a1a1a; border-radius: 1.5rem; transition: all 0.3s; height: 100%; overflow: hidden; }
         .card:hover { border-color: #333; transform: translateY(-2px); }
         
         .progress-track { background: #111; height: 4px; width: 100%; border-radius: 2px; overflow: hidden; }
@@ -31,13 +31,26 @@
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #000; }
         ::-webkit-scrollbar-thumb { background: #222; border-radius: 10px; }
+
+        .scanline {
+            width: 100%;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            position: absolute;
+            animation: scan 3s linear infinite;
+            z-index: 5;
+        }
+        @keyframes scan { from { top: 0; } to { top: 100%; } }
+
+        .warning-glow { animation: pulse-red 2s infinite; }
+        @keyframes pulse-red { 0% { box-shadow: 0 0 0px rgba(239,68,68,0); } 50% { box-shadow: 0 0 15px rgba(239,68,68,0.4); } 100% { box-shadow: 0 0 0px rgba(239,68,68,0); } }
     </style>
 </head>
 <body class="selection:bg-white selection:text-black">
 
     <!-- NAVIGATION -->
     <nav class="sticky top-0 z-50 glass">
-        <div class="max-w-6xl mx-auto px-6 flex justify-between h-20 items-center">
+        <div class="max-w-7xl mx-auto px-6 flex justify-between h-20 items-center">
             <div class="flex items-center gap-3">
                 <div class="w-8 h-8 bg-white flex items-center justify-center rounded-sm">
                     <span class="text-black font-black text-xl italic text-center">Λ</span>
@@ -46,14 +59,14 @@
             </div>
             <div class="flex gap-8 items-center">
                 <button class="nav-btn active text-[10px] font-black uppercase tracking-[0.2em]" data-target="section-tracker">Protocol</button>
-                <button class="nav-btn text-[10px] font-black uppercase tracking-[0.2em]" data-target="section-pillars">Pillars</button>
-                <button class="nav-btn text-[10px] font-black uppercase tracking-[0.2em]" data-target="section-analytics">Biometrics</button>
-                <button onclick="resetData()" class="text-[10px] font-black uppercase text-red-500/50 hover:text-red-500 transition-colors">Reset</button>
+                <button class="nav-btn text-[10px] font-black uppercase tracking-[0.2em]" data-target="section-pillars">Biological Levers</button>
+                <button class="nav-btn text-[10px] font-black uppercase tracking-[0.2em]" data-target="section-analytics">Bio-Metrics</button>
+                <button onclick="resetData()" class="text-[10px] font-black uppercase text-red-500/50 hover:text-red-500 transition-colors">Wipe System</button>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-6xl mx-auto px-6 py-12">
+    <main class="max-w-7xl mx-auto px-6 py-12">
         
         <!-- PROTOCOL SECTION -->
         <section id="section-tracker" class="content-section">
@@ -65,13 +78,13 @@
                             Day: <span id="statDay" class="text-white">01</span>
                         </div>
                         <div class="px-3 py-1 border border-[#333] rounded-full text-[10px] font-black uppercase tracking-widest text-gray-400">
-                            Phase: <span id="currentPhaseLabel" class="text-white">Foundation</span>
+                            Status: <span id="currentPhaseLabel" class="text-white uppercase">Foundation</span>
                         </div>
                     </div>
                 </div>
                 <div class="w-full md:w-64">
                     <div class="flex justify-between text-[10px] font-black uppercase mb-2 tracking-widest">
-                        <span>Current Power Level</span>
+                        <span>Genetic Potential Realized</span>
                         <span id="overallPercent">0%</span>
                     </div>
                     <div class="progress-track"><div id="overallFill" class="progress-fill"></div></div>
@@ -80,19 +93,35 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
                 <div class="lg:col-span-8">
+                    <!-- CALENDAR TRACKER -->
                     <div class="grid grid-cols-5 sm:grid-cols-10 gap-2" id="calendarGrid"></div>
                     
-                    <div class="mt-12 p-8 card border-dashed">
-                        <h3 class="text-xl font-black uppercase italic mb-6">Visual Proof (Local Storage)</h3>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="relative group aspect-square bg-white/5 rounded-2xl flex flex-col items-center justify-center border border-white/10 overflow-hidden">
+                    <!-- DERMAL CYCLE PROGRESS -->
+                    <div class="mt-8 p-6 bg-white/5 rounded-2xl border border-white/10">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-[10px] font-black uppercase tracking-widest">28-Day Epidermal Turnover</span>
+                            <span id="dermalCycleText" class="text-[10px] text-gray-500 uppercase">Phase: Barrier Prep</span>
+                        </div>
+                        <div class="h-2 bg-black rounded-full overflow-hidden">
+                            <div id="dermalFill" class="h-full bg-blue-500 w-0 transition-all duration-1000"></div>
+                        </div>
+                        <p class="text-[9px] text-gray-500 mt-2 uppercase tracking-tight italic">Visible "Glow" occurs after Day 28. Avoid quitting during the Week 2 Retinol Purge.</p>
+                    </div>
+
+                    <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="card p-6 border-dashed bg-transparent">
+                            <h3 class="text-xs font-black uppercase tracking-widest mb-4">Initial State (Day 0)</h3>
+                            <div class="relative group aspect-video bg-white/5 rounded-xl flex flex-col items-center justify-center border border-white/10 overflow-hidden">
                                 <img id="imgBefore" class="absolute inset-0 w-full h-full object-cover hidden">
-                                <span class="text-[10px] font-black uppercase text-gray-500 group-hover:text-white transition-colors">Day 01 Photo</span>
+                                <span class="text-[9px] font-black uppercase text-gray-500">Upload Base Biometrics</span>
                                 <input type="file" onchange="uploadPhoto(this, 'imgBefore')" class="absolute inset-0 opacity-0 cursor-pointer">
                             </div>
-                            <div class="relative group aspect-square bg-white/5 rounded-2xl flex flex-col items-center justify-center border border-white/10 overflow-hidden">
+                        </div>
+                        <div class="card p-6 border-dashed bg-transparent">
+                            <h3 class="text-xs font-black uppercase tracking-widest mb-4">Ascended State (Day 60)</h3>
+                            <div class="relative group aspect-video bg-white/5 rounded-xl flex flex-col items-center justify-center border border-white/10 overflow-hidden">
                                 <img id="imgAfter" class="absolute inset-0 w-full h-full object-cover hidden">
-                                <span class="text-[10px] font-black uppercase text-gray-500 group-hover:text-white transition-colors">Day 60 Photo</span>
+                                <span class="text-[9px] font-black uppercase text-gray-500">Upload Final Optimization</span>
                                 <input type="file" onchange="uploadPhoto(this, 'imgAfter')" class="absolute inset-0 opacity-0 cursor-pointer">
                             </div>
                         </div>
@@ -102,8 +131,11 @@
                 <div class="lg:col-span-4">
                     <div class="card p-8 sticky top-28 shadow-2xl bg-gradient-to-b from-[#0a0a0a] to-black">
                         <div class="flex justify-between items-center mb-8">
-                            <h2 id="dayTitle" class="text-3xl font-black uppercase italic">Day 01</h2>
-                            <div id="dayStatusIndicator" class="w-3 h-3 bg-red-500 rounded-full shadow-[0_0_10px_rgba(239,68,68,0.5)]"></div>
+                            <div>
+                                <h2 id="dayTitle" class="text-3xl font-black uppercase italic leading-none">Day 01</h2>
+                                <p class="text-[9px] text-gray-500 uppercase font-bold tracking-widest mt-1">Daily Discipline Pack</p>
+                            </div>
+                            <div id="dayStatusIndicator" class="w-3 h-3 bg-red-500 rounded-full"></div>
                         </div>
                         <ul id="taskList" class="space-y-3"></ul>
                     </div>
@@ -113,165 +145,164 @@
 
         <!-- PILLARS SECTION -->
         <section id="section-pillars" class="content-section hidden">
-            <h1 class="text-5xl font-black mb-12 uppercase italic tracking-tighter">The Foundations</h1>
-            <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-                <!-- NUTRITION -->
-                <div class="card p-8">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-2 h-8 bg-white"></div>
-                        <h3 class="text-xl font-black uppercase italic">Nutrition</h3>
-                    </div>
-                    <div class="chart-container mb-6"><canvas id="macroChart"></canvas></div>
-                    <div class="space-y-4">
-                        <div class="p-4 bg-white/5 rounded-xl border border-white/5">
-                            <p class="text-xs font-black uppercase mb-1">Anabolic Window</p>
-                            <p class="text-[10px] text-gray-500 leading-relaxed">Consume 30-50g protein within 2 hours of lifting to maximize muscle protein synthesis.</p>
-                        </div>
-                        <div class="p-4 bg-white/5 rounded-xl border border-white/5">
-                            <p class="text-xs font-black uppercase mb-1">Anti-Bloat Protocol</p>
-                            <p class="text-[10px] text-gray-500 leading-relaxed">Sodium < 2g/day. High Potassium (Bananas/Potatoes) to flush water retention.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- VASCULARITY (EXPANDED CARDIO) -->
-                <div class="card p-8">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-2 h-8 bg-orange-500"></div>
-                        <h3 class="text-xl font-black uppercase italic">Vascularity</h3>
-                    </div>
-                    <div class="space-y-5">
-                        <div class="border-b border-white/5 pb-4">
-                            <p class="text-[10px] font-black uppercase mb-1 text-orange-500">Lipid Oxidation (LISS)</p>
-                            <p class="text-[11px] text-gray-300 font-bold mb-1">Incline Zone 2 Walking</p>
-                            <p class="text-[10px] text-gray-500 leading-relaxed">45 mins at 130bpm. This specific heart rate maximizes fat oxidation while keeping cortisol low. Elevated cortisol causes the body to hold facial water weight (moon face).</p>
-                        </div>
-                        <div class="border-b border-white/5 pb-4">
-                            <p class="text-[10px] font-black uppercase mb-1 text-orange-500">Angiogenesis (HIIT)</p>
-                            <p class="text-[11px] text-gray-300 font-bold mb-1">Capillary Branching Sprints</p>
-                            <p class="text-[10px] text-gray-500 leading-relaxed">15 mins (30s sprint / 30s rest). High-intensity work forces the body to create new micro-capillaries, leading to permanent vascularity in the forearms and delts.</p>
-                        </div>
-                        <div class="border-b border-white/5 pb-4">
-                            <p class="text-[10px] font-black uppercase mb-1 text-orange-500">Plasma Expansion</p>
-                            <p class="text-[11px] text-gray-300 font-bold mb-1">Intravascular Fullness</p>
-                            <p class="text-[10px] text-gray-500 leading-relaxed">Supplementing L-Citrulline Malate prior to cardio sessions increases Nitric Oxide, expanding the vein walls for a "thick" vascular look.</p>
-                        </div>
-                        <div>
-                            <p class="text-[10px] font-black uppercase mb-1 text-orange-500">Thermal Shock</p>
-                            <p class="text-[11px] text-gray-300 font-bold mb-1">Vasoconstriction Cycling</p>
-                            <p class="text-[10px] text-gray-500 leading-relaxed">End every session with 3 mins of ice-cold water. This cycles blood from the skin to the core and back, "training" the skin to shrink-wrap the muscle.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- DERM -->
-                <div class="card p-8">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-2 h-8 bg-gray-400"></div>
-                        <h3 class="text-xl font-black uppercase italic">Derm Lab</h3>
-                    </div>
-                    <div class="space-y-6">
-                        <div>
-                            <p class="text-xs font-black uppercase mb-1 text-white">Tretinoin</p>
-                            <p class="text-[10px] text-gray-500 leading-relaxed italic mb-2">"Prescription-strength Vitamin A for skin cell turnover."</p>
-                            <p class="text-[10px] text-gray-400">Apply only at night. Starts with 0.025%. Reverses sun damage and clears acne.</p>
-                        </div>
-                        <div>
-                            <p class="text-xs font-black uppercase mb-1 text-white">Dermastamping</p>
-                            <p class="text-[10px] text-gray-400">Micro-needling (0.5mm) once a week to induce collagen and thicken facial skin.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- STRUCTURE -->
-                <div class="card p-8">
-                    <div class="flex items-center gap-3 mb-6">
-                        <div class="w-2 h-8 bg-gray-600"></div>
-                        <h3 class="text-xl font-black uppercase italic">Structure</h3>
-                    </div>
-                    <div class="space-y-6">
-                        <div>
-                            <p class="text-xs font-black uppercase mb-1 text-white">Mewing (Orthotropics)</p>
-                            <p class="text-[10px] text-gray-400">Tongue posture. Press your whole tongue against the roof of your mouth. Sharpens the jawline over time.</p>
-                        </div>
-                        <div>
-                            <p class="text-xs font-black uppercase mb-1 text-white">Postural Correction</p>
-                            <p class="text-[10px] text-gray-400">"Chin Tucks" daily. Pull your head back until you have a double chin. Hold 5s. Fixes "Nerd Neck."</p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- SLEEP -->
+            <h1 class="text-5xl font-black mb-12 uppercase italic tracking-tighter">Biological Levers</h1>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+                <!-- DERMAL BIOCHEMISTRY -->
                 <div class="card p-8">
                     <div class="flex items-center gap-3 mb-6">
                         <div class="w-2 h-8 bg-blue-500"></div>
-                        <h3 class="text-xl font-black uppercase italic">Sleep Opt</h3>
+                        <h3 class="text-xl font-black uppercase italic">Dermal Biochemistry</h3>
                     </div>
                     <div class="space-y-6">
                         <div>
-                            <p class="text-xs font-black uppercase mb-1 text-white">Mouth Taping</p>
-                            <p class="text-[10px] text-gray-400">Force nasal breathing at night. Prevents "mouth breather face" and dry lips. Sharpens jawline definition by reducing facial puffiness.</p>
+                            <p class="text-[10px] font-black uppercase text-blue-500 mb-2 tracking-widest">Active Conflict Map</p>
+                            <div class="text-[10px] grid grid-cols-2 gap-2 bg-black/50 p-3 rounded-lg border border-white/5">
+                                <span class="text-gray-400 font-bold uppercase">Vitamin C + Retinol</span>
+                                <span class="text-red-500 text-right uppercase font-black">pH Neutralize</span>
+                                <span class="text-gray-400 font-bold uppercase">BHA + Tretinoin</span>
+                                <span class="text-red-500 text-right uppercase font-black">Severe Irritation</span>
+                                <span class="text-gray-400 font-bold uppercase">Copper Peptides + C</span>
+                                <span class="text-red-500 text-right uppercase font-black">Oxidation Risk</span>
+                            </div>
                         </div>
                         <div>
-                            <p class="text-xs font-black uppercase mb-1 text-white">Back Sleeping</p>
-                            <p class="text-[10px] text-gray-400">Sleep on your back with a silk pillowcase to prevent sleep wrinkles and asymmetrical facial compression.</p>
+                            <p class="text-[10px] font-black uppercase text-white mb-1">Nuclear Retinoic Receptors</p>
+                            <p class="text-[10px] text-gray-500 leading-relaxed italic">Tretinoin induces the expression of genes involved in cellular proliferation. It is not "creme," it is genetic signaling.</p>
                         </div>
                     </div>
                 </div>
 
-                <!-- HYPER-AESTHETICS -->
-                <div class="card p-8">
+                <!-- HUNTER EYE PROTOCOL -->
+                <div class="card p-8 relative">
+                    <div class="scanline opacity-20"></div>
                     <div class="flex items-center gap-3 mb-6">
                         <div class="w-2 h-8 bg-purple-500"></div>
-                        <h3 class="text-xl font-black uppercase italic">Hyper-Aesthetics</h3>
+                        <h3 class="text-xl font-black uppercase italic">Ocular Physics</h3>
+                    </div>
+                    <div class="space-y-5">
+                        <div class="bg-black/40 p-4 rounded-xl border border-white/5">
+                            <p class="text-[10px] font-black uppercase text-purple-400 mb-1">Canthal Tilt Calibration</p>
+                            <p class="text-[10px] text-gray-400 leading-tight">Neutral to Positive canthal tilt is essential for predatory gaze. Use Minoxidil (5%) on eyebrows + low-set grooming to mimic a robust supraorbital rim.</p>
+                        </div>
+                        <div class="bg-black/40 p-4 rounded-xl border border-white/5">
+                            <p class="text-[10px] font-black uppercase text-purple-400 mb-1">Infraorbital Support</p>
+                            <p class="text-[10px] text-gray-400 leading-tight">Hyaluronic acid + Vitamin K for dark circles. Cold compress triggers vasoconstriction, shrinking sub-orbital edema.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CRANIOFACIAL STRUCTURE -->
+                <div class="card p-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-2 h-8 bg-orange-500"></div>
+                        <h3 class="text-xl font-black uppercase italic">Structural Frame</h3>
                     </div>
                     <div class="space-y-6">
                         <div>
-                            <p class="text-xs font-black uppercase mb-1 text-white">Vocal Resonance Training</p>
-                            <p class="text-[10px] text-gray-400">Humming exercises to shift speaking voice from the throat to the "mask" (chest/nose). Increases perceived authority and testosterone signaling.</p>
+                            <p class="text-[10px] font-black uppercase text-orange-400 mb-1">Neck-to-Jaw Physics</p>
+                            <p class="text-[10px] text-gray-400 leading-relaxed">If neck width < jaw width = "Bobblehead Effect". Hypertrophy the SCM muscles via direct curls until neck width matches the mandible for masculine mass.</p>
                         </div>
-                        <div>
-                            <p class="text-xs font-black uppercase mb-1 text-white">Limbal Ring Enhancement</p>
-                            <p class="text-[10px] text-gray-400">Lutein-rich diet + hydration. Maximizing the contrast between the iris and the white (sclera) of the eye for a "youthful" and "predatory" gaze.</p>
+                        <div class="flex gap-4 items-center p-3 bg-white/5 rounded-lg">
+                            <div class="w-12 h-12 bg-white/10 rounded flex items-center justify-center text-xs font-bold uppercase">Hyoid</div>
+                            <p class="text-[10px] text-gray-400">"Mewing" elevates the hyoid bone, physically vacuuming the submental skin against the jawline instantly.</p>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- CHEAT SHEET TABLE -->
+            <div class="card p-8 bg-black">
+                <h3 class="text-xs font-black uppercase tracking-[0.3em] mb-8 text-center">Protocol Master Reference</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-[10px] uppercase font-bold tracking-widest border-collapse">
+                        <thead>
+                            <tr class="border-b border-white/10 text-gray-500">
+                                <th class="pb-4">Category</th>
+                                <th class="pb-4">Biological Lever</th>
+                                <th class="pb-4">Key Intervention</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-300">
+                            <tr class="border-b border-white/5"><td class="py-4">Facial Frame</td><td class="py-4">Masseter Hypertrophy</td><td class="py-4 text-white">Mastic Gum (High Res)</td></tr>
+                            <tr class="border-b border-white/5"><td class="py-4">Fluid Mechanics</td><td class="py-4">Osmotic Gradient</td><td class="py-4 text-white">4L Water + K+ Loading</td></tr>
+                            <tr class="border-b border-white/5"><td class="py-4">Dermal Clarity</td><td class="py-4">Cellular Turnover</td><td class="py-4 text-white">Tretinoin (0.05%)</td></tr>
+                            <tr class="border-b border-white/5"><td class="py-4">Ocular Appeal</td><td class="py-4">Follicle Stimulation</td><td class="py-4 text-white">Minoxidil (Brows)</td></tr>
+                            <tr class="border-b border-white/5"><td class="py-4">Oral Systemics</td><td class="py-4">Lipid Solubility</td><td class="py-4 text-white">Coconut Oil Pulling</td></tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </section>
 
         <!-- ANALYTICS SECTION -->
         <section id="section-analytics" class="content-section hidden">
-            <h1 class="text-5xl font-black mb-12 uppercase italic tracking-tighter">Biometric Audit</h1>
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="card p-8">
-                    <h3 class="text-xl font-black mb-8 uppercase italic">Optimization Calculator</h3>
+            <h1 class="text-5xl font-black mb-12 uppercase italic tracking-tighter">Bio-Metrics</h1>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- BLOAT RADAR (SODIUM POTASSIUM) -->
+                <div id="bloatRadar" class="lg:col-span-4 card p-8 transition-all duration-500">
+                    <h3 class="text-xl font-black mb-8 uppercase italic">Bloat Radar</h3>
                     <div class="space-y-6">
                         <div>
-                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-500 block mb-2">Current Body Weight (lbs)</label>
-                            <input type="number" id="inputWeight" oninput="calculateMacros()" placeholder="165" class="w-full p-4 bg-black border border-white/10 rounded-xl outline-none focus:border-white transition-all text-sm font-black">
+                            <label class="text-[9px] font-black uppercase text-gray-500 mb-2 block">Daily Sodium (mg)</label>
+                            <input type="number" id="inputSodium" oninput="calculateBloat()" placeholder="1500" class="w-full p-3 bg-black border border-white/10 rounded-lg outline-none text-xs font-black">
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="p-6 bg-white/5 rounded-2xl border border-white/5">
-                                <p class="text-[10px] font-black uppercase text-gray-500 mb-1">Target Daily Protein</p>
-                                <p id="resultProtein" class="text-3xl font-black italic tracking-tighter">0g</p>
-                            </div>
-                            <div class="p-6 bg-white/5 rounded-2xl border border-white/5">
-                                <p class="text-[10px] font-black uppercase text-gray-500 mb-1">Target Water Intake</p>
-                                <p id="resultWater" class="text-3xl font-black italic tracking-tighter">0 oz</p>
-                            </div>
+                        <div>
+                            <label class="text-[9px] font-black uppercase text-gray-500 mb-2 block">Daily Potassium (mg)</label>
+                            <input type="number" id="inputPotassium" oninput="calculateBloat()" placeholder="4700" class="w-full p-3 bg-black border border-white/10 rounded-lg outline-none text-xs font-black">
                         </div>
-                        <div class="p-6 bg-white/10 rounded-2xl">
-                            <p class="text-[10px] font-black uppercase mb-2">Protocol Insight</p>
-                            <p class="text-[11px] text-gray-400 leading-relaxed">Targeting 1g protein per lb of body weight ensures maximum muscle retention while in a caloric deficit. Water intake set to 0.7oz per lb for optimal facial lymphatic drainage.</p>
+                        
+                        <div id="edemaAlert" class="hidden p-4 rounded-xl border border-red-500/50 bg-red-500/10 warning-glow">
+                            <p class="text-[10px] font-black text-red-500 uppercase italic">⚠️ Facial Edema Warning</p>
+                            <p class="text-[9px] text-red-400 mt-1 uppercase">Sodium retention high. Osmotic pump failure. Double water intake immediately.</p>
+                        </div>
+
+                        <div id="optimalStatus" class="p-4 rounded-xl border border-green-500/20 bg-green-500/5 text-center">
+                            <p class="text-[10px] font-black text-green-500 uppercase tracking-widest">Pump Status: Optimal</p>
                         </div>
                     </div>
                 </div>
 
-                <div class="card p-8">
-                    <h3 class="text-xl font-black mb-8 uppercase italic">Consistency Velocity</h3>
-                    <div class="chart-container"><canvas id="velocityChart"></canvas></div>
-                    <p class="text-[10px] text-gray-500 mt-6 text-center uppercase font-black tracking-widest">Tracking completion rate over last 7 sessions</p>
+                <!-- HARDMAX THRESHOLD -->
+                <div class="lg:col-span-8 card p-8">
+                    <div class="flex justify-between items-start mb-8">
+                        <div>
+                            <h3 class="text-xl font-black uppercase italic">Hardmax Threshold Audit</h3>
+                            <p class="text-[10px] text-gray-500 uppercase mt-1 tracking-widest">Natural vs Artificial Limit Assessment</p>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-[10px] text-gray-500 uppercase">Audit Level</p>
+                            <p class="text-lg font-black italic">CLINICAL</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div class="space-y-4">
+                            <p class="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">Biological Prerequisites</p>
+                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                                <input type="checkbox" class="h-4 w-4">
+                                <span class="text-[10px] font-bold uppercase">Body Fat ≤ 12% Realized</span>
+                            </div>
+                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                                <input type="checkbox" class="h-4 w-4">
+                                <span class="text-[10px] font-bold uppercase">Dermal Clarity Peak Reached</span>
+                            </div>
+                            <div class="flex items-center gap-3 p-3 bg-white/5 rounded-xl border border-white/5">
+                                <input type="checkbox" class="h-4 w-4">
+                                <span class="text-[10px] font-bold uppercase">Posture Symmetry Optimized</span>
+                            </div>
+                        </div>
+                        <div class="p-6 bg-white/5 rounded-2xl border border-white/10 flex flex-col justify-center">
+                            <p class="text-[9px] text-gray-500 uppercase mb-2">Technical Guidance</p>
+                            <p class="text-[11px] leading-relaxed italic text-gray-400">If all boxes are checked and structural goals (jawline angle, eye depth) are not met, you have reached the <strong>Softmax Limit</strong>. Only then should Hardmaxxing (fillers, implants) be researched.</p>
+                        </div>
+                    </div>
                 </div>
+            </div>
+            
+            <div class="mt-8 p-6 text-center text-gray-600">
+                <p class="text-[9px] uppercase tracking-[0.4em]">Aesthetic optimization is a tool for self-mastery. Avoid BDD. Protocol over obsession.</p>
             </div>
         </section>
     </main>
@@ -282,9 +313,9 @@
         let photos = JSON.parse(localStorage.getItem('apex_photos')) || { imgBefore: '', imgAfter: '' };
 
         const phaseTasks = {
-            foundation: ["1 Gallon Water Flush", "AM Skin Routine + SPF", "PM Tretinoin/Moisturize", "1hr Mewing Practice", "45m Weight Training", "10,000 Steps LISS", "10x Chin Tucks", "Mouth Tape Sleep"],
-            acceleration: ["1 Gallon Water Hydration", "Intermittent Fast (16:8)", "AM Facial Icing", "Castor Oil Brows", "30m Incline Walk (LISS)", "Eyelid Squinches", "High Protein Post-Lift", "8hr Sleep on Back"],
-            transcendence: ["1.2 Gallon Water Purity", "Weekly Dermastamp", "Gua Sha Facial Sculpt", "Vocal Deepening Drills", "15m Fasted HIIT Sprints", "3m Cold Shower", "Minoxidil to Brows", "No Screens 1hr Pre-Sleep"]
+            foundation: ["1 Gallon Water Flush", "AM Skin (pH Balance)", "PM Tretinoin (0.025%)", "1hr Mewing Practice", "45m Hypertrophy", "Neck Curls (Direct Training)", "Mouth Tape (Nasal Sleep)", "Posture Audit"],
+            acceleration: ["1.2 Gallon Hydration", "Intermittent Fast (16:8)", "AM Facial Icing (3m)", "5% Minoxidil (Brows)", "Mastic Gum (20m Chewing)", "Neck ISO-Hold (15s x 3)", "High Potassium Protocol", "Silk Pillowcase Sleep"],
+            transcendence: ["1.5 Gallon Purity", "Microneedle (Brows/Scalp)", "Gua Sha (Lymph Drainage)", "Vocal Resonance Hum", "L-Citrulline Cardio", "3m Cold Shock Shower", "Sodium < 1500mg Limit", "No Screens 1hr Prior"]
         };
 
         function saveState() {
@@ -293,7 +324,7 @@
         }
 
         function resetData() {
-            if(confirm("Erase all progress and reset protocol?")) {
+            if(confirm("Erase all biological data and reset protocol?")) {
                 localStorage.clear();
                 location.reload();
             }
@@ -311,6 +342,7 @@
                 grid.appendChild(btn);
             }
             updateOverallProgress();
+            updateDermalProgress();
         }
 
         function selectDay(day) {
@@ -320,7 +352,7 @@
             document.getElementById('statDay').textContent = day.toString().padStart(2, '0');
             
             let phase = day <= 20 ? 'foundation' : day <= 40 ? 'acceleration' : 'transcendence';
-            document.getElementById('currentPhaseLabel').textContent = phase.charAt(0).toUpperCase() + phase.slice(1);
+            document.getElementById('currentPhaseLabel').textContent = phase;
             
             const tasks = phaseTasks[phase];
             if (!completionData[day]) completionData[day] = new Array(tasks.length).fill(false);
@@ -329,7 +361,7 @@
             list.innerHTML = tasks.map((t, idx) => `
                 <li class="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 group hover:border-white/10 transition-all">
                     <input type="checkbox" onchange="toggleTask(${day}, ${idx})" ${completionData[day][idx] ? 'checked' : ''} class="h-5 w-5 cursor-pointer">
-                    <span class="text-[11px] font-bold text-gray-400 group-hover:text-white">${t}</span>
+                    <span class="text-[10px] font-bold text-gray-400 group-hover:text-white uppercase tracking-tight">${t}</span>
                 </li>
             `).join('');
             updateDayStatus(day);
@@ -341,35 +373,54 @@
             updateDayStatus(day);
             updateOverallProgress();
             renderCalendar();
-            updateVelocityChart();
         }
 
         function updateDayStatus(day) {
             const isDone = completionData[day] && completionData[day].every(v => v === true);
             const indicator = document.getElementById('dayStatusIndicator');
-            indicator.className = `w-3 h-3 rounded-full shadow-lg ${isDone ? 'bg-green-500 shadow-green-500/50' : 'bg-red-500 shadow-red-500/50'}`;
+            indicator.className = `w-3 h-3 rounded-full shadow-lg ${isDone ? 'bg-green-500' : 'bg-red-500'}`;
         }
 
         function updateOverallProgress() {
-            let totalTasks = 0;
-            let completedTasks = 0;
+            let totalTasks = 0, completedTasks = 0;
             for(let i=1; i<=60; i++) {
                 let phase = i <= 20 ? 'foundation' : i <= 40 ? 'acceleration' : 'transcendence';
                 totalTasks += phaseTasks[phase].length;
-                if(completionData[i]) {
-                    completedTasks += completionData[i].filter(v => v === true).length;
-                }
+                if(completionData[i]) completedTasks += completionData[i].filter(v => v).length;
             }
             const percent = Math.round((completedTasks / totalTasks) * 100);
             document.getElementById('overallFill').style.width = percent + '%';
             document.getElementById('overallPercent').textContent = percent + '%';
         }
 
-        function calculateMacros() {
-            const w = document.getElementById('inputWeight').value;
-            if(!w) return;
-            document.getElementById('resultProtein').textContent = Math.round(w) + 'g';
-            document.getElementById('resultWater').textContent = Math.round(w * 0.7) + ' oz';
+        function updateDermalProgress() {
+            const cycleProgress = (currentDay % 28) / 28 * 100;
+            document.getElementById('dermalFill').style.width = cycleProgress + '%';
+            const label = document.getElementById('dermalCycleText');
+            if(currentDay % 28 < 7) label.textContent = "Phase: Barrier Prep";
+            else if(currentDay % 28 < 14) label.textContent = "Phase: Retinol Purge Risk";
+            else if(currentDay % 28 < 21) label.textContent = "Phase: Resurfacing";
+            else label.textContent = "Phase: True Glow Realization";
+        }
+
+        function calculateBloat() {
+            const sod = parseInt(document.getElementById('inputSodium').value) || 0;
+            const pot = parseInt(document.getElementById('inputPotassium').value) || 1; // avoid div by 0
+            const ratio = sod / pot;
+            
+            const alertBox = document.getElementById('edemaAlert');
+            const optimalBox = document.getElementById('optimalStatus');
+            const radar = document.getElementById('bloatRadar');
+
+            if(ratio > 0.6 || sod > 2500) {
+                alertBox.classList.remove('hidden');
+                optimalBox.classList.add('hidden');
+                radar.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+            } else {
+                alertBox.classList.add('hidden');
+                optimalBox.classList.remove('hidden');
+                radar.style.borderColor = 'rgba(26, 26, 26, 1)';
+            }
         }
 
         function uploadPhoto(input, id) {
@@ -395,71 +446,11 @@
             };
         });
 
-        let velocityChart;
-        function updateVelocityChart() {
-            const ctx = document.getElementById('velocityChart').getContext('2d');
-            const last7Days = Array.from({length: 7}, (_, i) => currentDay - 6 + i).filter(d => d > 0);
-            const data = last7Days.map(d => {
-                if(!completionData[d]) return 0;
-                return (completionData[d].filter(v => v).length / completionData[d].length) * 100;
-            });
-
-            if(velocityChart) velocityChart.destroy();
-            velocityChart = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: last7Days.map(d => 'Day ' + d),
-                    datasets: [{
-                        label: 'Completion %',
-                        data: data,
-                        borderColor: '#fff',
-                        backgroundColor: 'rgba(255,255,255,0.05)',
-                        fill: true,
-                        tension: 0.4,
-                        borderWidth: 2,
-                        pointRadius: 0
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { display: false, min: 0, max: 100 },
-                        x: { grid: { display: false }, ticks: { color: '#444', font: { size: 8 } } }
-                    }
-                }
-            });
-        }
-
         window.onload = () => {
             renderCalendar();
             selectDay(currentDay);
-            
-            if(photos.imgBefore) {
-                document.getElementById('imgBefore').src = photos.imgBefore;
-                document.getElementById('imgBefore').classList.remove('hidden');
-            }
-            if(photos.imgAfter) {
-                document.getElementById('imgAfter').src = photos.imgAfter;
-                document.getElementById('imgAfter').classList.remove('hidden');
-            }
-
-            const mCtx = document.getElementById('macroChart').getContext('2d');
-            new Chart(mCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Protein', 'Fats', 'Carbs'],
-                    datasets: [{
-                        data: [40, 25, 35],
-                        backgroundColor: ['#fff', '#666', '#222'],
-                        borderWidth: 0
-                    }]
-                },
-                options: { cutout: '85%', plugins: { legend: { display: false } } }
-            });
-
-            updateVelocityChart();
+            if(photos.imgBefore) { document.getElementById('imgBefore').src = photos.imgBefore; document.getElementById('imgBefore').classList.remove('hidden'); }
+            if(photos.imgAfter) { document.getElementById('imgAfter').src = photos.imgAfter; document.getElementById('imgAfter').classList.remove('hidden'); }
         };
     </script>
 </body>
