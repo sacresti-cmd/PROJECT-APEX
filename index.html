@@ -3,77 +3,98 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Apex | 30-Day Optimization</title>
+    <title>APEX | 60-Day Physical Optimization</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <style>
-        .chart-container { position: relative; width: 100%; max-width: 600px; margin: 0 auto; height: 300px; }
-        .nav-btn.active { border-bottom: 3px solid #10b981; color: #10b981; font-weight: 800; }
-        .day-btn { transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-        .day-btn.active-day { background-color: #10b981; color: white; border-color: #059669; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); }
-        .loader { border: 2px solid #f3f3f3; border-top: 2px solid #10b981; border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; display: inline-block; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+        
+        body { font-family: 'Inter', sans-serif; background-color: #000; color: #fff; }
+        .chart-container { position: relative; width: 100%; height: 250px; }
+        
+        /* Monochrome Styling */
+        .nav-btn.active { border-bottom: 3px solid #fff; color: #fff; }
+        .day-btn { border: 1px solid #333; transition: all 0.2s; background: #111; color: #666; }
+        .day-btn.active-day { background: #fff; color: #000; border-color: #fff; transform: scale(1.05); box-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        .day-btn.completed { border-color: #555; color: #fff; }
+        
+        .glass { background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); border-bottom: 1px solid #222; }
+        .card { background: #111; border: 1px solid #222; border-radius: 1.5rem; transition: border 0.3s; }
+        .card:hover { border-color: #444; }
+        
+        .loader { border: 2px solid #333; border-top: 2px solid #fff; border-radius: 50%; width: 16px; height: 16px; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .glass { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(12px); }
-        .content-section { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 10px; }
     </style>
 </head>
-<body class="bg-stone-50 text-slate-900 font-sans antialiased selection:bg-emerald-100">
+<body class="selection:bg-white selection:text-black">
 
-    <!-- SETTINGS MODAL -->
-    <div id="settingsModal" class="fixed inset-0 bg-black/70 z-[100] hidden flex items-center justify-center p-4 backdrop-blur-md">
-        <div class="bg-white rounded-3xl p-8 max-w-md w-full shadow-2xl border border-stone-200">
-            <h3 class="text-2xl font-black mb-2 uppercase italic tracking-tight">The Vault</h3>
-            <p class="text-sm text-slate-500 mb-6 leading-relaxed">Enter your <strong>Gemini API Key</strong> to unlock AI features. This is stored in your browser's local storage and never leaves your device.</p>
-            <input type="password" id="apiKeyInput" placeholder="Enter API Key..." class="w-full p-4 border border-stone-200 rounded-2xl mb-4 outline-none focus:ring-2 focus:ring-emerald-500 bg-stone-50">
+    <!-- THE VAULT (API SETTINGS) -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/90 z-[100] hidden flex items-center justify-center p-4">
+        <div class="bg-[#111] border border-[#333] rounded-3xl p-8 max-w-md w-full shadow-2xl">
+            <h3 class="text-2xl font-black mb-2 uppercase italic tracking-tighter">System Access</h3>
+            <p class="text-xs text-gray-500 mb-6">Input your Gemini API Key. All data remains client-side.</p>
+            <input type="password" id="apiKeyInput" placeholder="PASTE_KEY_HERE" class="w-full p-4 bg-black border border-[#333] rounded-xl mb-4 text-white outline-none focus:border-white transition-all">
             <div class="flex gap-3">
-                <button onclick="saveApiKey()" class="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 transition-all">Save Key</button>
-                <button onclick="toggleSettings()" class="flex-1 bg-stone-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-stone-200">Cancel</button>
+                <button onclick="saveApiKey()" class="flex-1 bg-white text-black py-3 rounded-xl font-black uppercase text-xs tracking-widest hover:bg-gray-200 transition-all">Save Key</button>
+                <button onclick="toggleSettings()" class="flex-1 bg-[#222] text-white py-3 rounded-xl font-bold text-xs uppercase hover:bg-[#333]">Close</button>
             </div>
         </div>
     </div>
 
     <!-- NAVIGATION -->
-    <nav class="sticky top-0 z-50 glass border-b border-stone-200">
-        <div class="max-w-6xl mx-auto px-4 flex justify-between h-20 items-center">
-            <div class="flex items-center gap-2">
-                <span class="text-3xl">⚡</span>
-                <span class="font-black text-2xl tracking-tighter uppercase italic">Project: Apex</span>
+    <nav class="sticky top-0 z-50 glass">
+        <div class="max-w-6xl mx-auto px-6 flex justify-between h-20 items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 bg-white flex items-center justify-center rounded-sm">
+                    <span class="text-black font-black text-xl italic">A</span>
+                </div>
+                <span class="font-black text-2xl tracking-tighter uppercase italic hidden sm:block">Apex System</span>
             </div>
-            <div class="flex gap-6 items-center">
-                <button class="nav-btn active px-2 py-1 text-xs font-bold uppercase tracking-widest" data-target="section-tracker">Protocol</button>
-                <button class="nav-btn px-2 py-1 text-xs font-bold uppercase tracking-widest" data-target="section-pillars">Pillars</button>
-                <button class="nav-btn px-2 py-1 text-xs font-bold uppercase tracking-widest text-emerald-600" data-target="section-ai">AI Lab</button>
-                <button onclick="toggleSettings()" class="p-2.5 bg-stone-100 hover:bg-emerald-100 rounded-full transition-all">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+            <div class="flex gap-8 items-center">
+                <button class="nav-btn active text-[10px] font-black uppercase tracking-[0.2em]" data-target="section-tracker">Protocol</button>
+                <button class="nav-btn text-[10px] font-black uppercase tracking-[0.2em]" data-target="section-pillars">Pillars</button>
+                <button class="nav-btn text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white" data-target="section-ai">AI Lab</button>
+                <button onclick="toggleSettings()" class="hover:opacity-70 transition-opacity">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
             </div>
         </div>
     </nav>
 
-    <main class="max-w-5xl mx-auto px-6 py-12">
+    <main class="max-w-6xl mx-auto px-6 py-12">
         
         <!-- PROTOCOL SECTION -->
         <section id="section-tracker" class="content-section">
-            <div class="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-4">
-                <div>
-                    <h1 class="text-5xl font-black mb-2 uppercase italic tracking-tighter">Optimization</h1>
-                    <p class="text-slate-500 font-medium uppercase tracking-widest text-xs">Phase: <span id="currentPhaseLabel" class="text-emerald-600 font-bold">Foundation</span></p>
-                </div>
-                <div class="bg-white px-6 py-3 rounded-2xl border border-stone-200 shadow-sm flex items-center gap-4">
-                    <p class="text-[10px] font-black uppercase text-slate-400">Progression</p>
-                    <p class="font-bold text-emerald-600" id="statDay">01 / 30</p>
+            <div class="mb-16">
+                <h1 class="text-7xl font-black mb-4 uppercase italic tracking-tighter leading-none">The 60-Day<br>Standard</h1>
+                <div class="flex items-center gap-6 mt-8">
+                    <div class="px-4 py-2 border border-[#333] rounded-full text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        Current Day: <span id="statDay" class="text-white">01</span>
+                    </div>
+                    <div class="px-4 py-2 border border-[#333] rounded-full text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        Phase: <span id="currentPhaseLabel" class="text-white">Foundation</span>
+                    </div>
                 </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                <div class="lg:col-span-7">
-                    <div class="grid grid-cols-5 md:grid-cols-6 gap-3" id="calendarGrid"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                <!-- 60 DAY CALENDAR -->
+                <div class="lg:col-span-8">
+                    <div class="grid grid-cols-6 sm:grid-cols-10 gap-2" id="calendarGrid"></div>
                 </div>
-                <div class="lg:col-span-5">
-                    <div class="bg-white p-8 rounded-[2rem] border border-stone-200 shadow-xl sticky top-28">
-                        <h2 id="dayTitle" class="text-3xl font-black uppercase italic mb-6">Day 1</h2>
+                <!-- DAILY TASKS -->
+                <div class="lg:col-span-4">
+                    <div class="card p-8 sticky top-28 shadow-2xl">
+                        <div class="flex justify-between items-center mb-8">
+                            <h2 id="dayTitle" class="text-3xl font-black uppercase italic">Day 01</h2>
+                            <div class="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                        </div>
                         <ul id="taskList" class="space-y-4"></ul>
                     </div>
                 </div>
@@ -82,23 +103,69 @@
 
         <!-- PILLARS SECTION -->
         <section id="section-pillars" class="content-section hidden">
-            <h1 class="text-4xl font-black mb-10 uppercase italic">Core Pillars</h1>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="bg-white p-8 rounded-3xl border border-stone-200 shadow-sm">
-                    <h3 class="text-xl font-bold mb-6 text-emerald-700 uppercase tracking-tight">🥗 Anabolic Nutrition</h3>
+            <h1 class="text-5xl font-black mb-12 uppercase italic tracking-tighter">The Foundations</h1>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Nutrition -->
+                <div class="card p-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-2 h-8 bg-white"></div>
+                        <h3 class="text-xl font-black uppercase italic">Nutrition</h3>
+                    </div>
                     <div class="chart-container mb-6"><canvas id="macroChart"></canvas></div>
-                    <p class="text-xs text-slate-500 text-center">Maintain 40/30/30 Macro split for optimal composition.</p>
-                </div>
-                <div class="bg-white p-8 rounded-3xl border border-stone-200 shadow-sm">
-                    <h3 class="text-xl font-bold mb-6 text-indigo-700 uppercase tracking-tight">🧴 Derm Protocol</h3>
                     <div class="space-y-4">
-                        <div class="p-4 bg-stone-50 rounded-xl border border-stone-100">
-                            <h4 class="font-bold text-xs uppercase text-slate-500 mb-1">Morning</h4>
-                            <p class="text-sm">Cleanse, Vitamin C, SPF 50.</p>
+                        <div class="group">
+                            <p class="text-xs font-black uppercase mb-1">Anabolic Window</p>
+                            <p class="text-[10px] text-gray-500 leading-relaxed">Consume 30-50g protein within 2 hours of lifting to maximize muscle protein synthesis.</p>
                         </div>
-                        <div class="p-4 bg-stone-50 rounded-xl border border-stone-100">
-                            <h4 class="font-bold text-xs uppercase text-slate-500 mb-1">Night</h4>
-                            <p class="text-sm">Double Cleanse, Tretinoin, Barrier Cream.</p>
+                        <div class="group">
+                            <p class="text-xs font-black uppercase mb-1">Anti-Bloat Protocol</p>
+                            <p class="text-[10px] text-gray-500 leading-relaxed">Sodium < 2g/day. High Potassium (Bananas/Potatoes) to flush water retention from the face.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Skincare/Derm -->
+                <div class="card p-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-2 h-8 bg-gray-500"></div>
+                        <h3 class="text-xl font-black uppercase italic">Derm Lab</h3>
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <p class="text-xs font-black uppercase mb-1 text-white">Tretinoin (The Gold Standard)</p>
+                            <p class="text-[10px] text-gray-500 leading-relaxed italic mb-2">"Prescription-strength Vitamin A for skin cell turnover."</p>
+                            <p class="text-[10px] text-gray-400">Apply only at night. Starts with 0.025%. Reverses sun damage and kills acne at the root.</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-black uppercase mb-1 text-white">Dermastamping</p>
+                            <p class="text-[10px] text-gray-400">Micro-needling (0.5mm) once a week to induce collagen and thicken facial skin.</p>
+                        </div>
+                        <div class="p-4 bg-white/5 rounded-xl border border-white/10">
+                            <p class="text-[10px] font-bold uppercase mb-1">Critical Rule</p>
+                            <p class="text-[10px] text-gray-500">No Tretinoin without SPF. You will burn your face otherwise.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Structural/Mewing -->
+                <div class="card p-8">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-2 h-8 bg-gray-700"></div>
+                        <h3 class="text-xl font-black uppercase italic">Structure</h3>
+                    </div>
+                    <div class="space-y-6">
+                        <div>
+                            <p class="text-xs font-black uppercase mb-1 text-white">Mewing (Orthotropics)</p>
+                            <p class="text-[10px] text-gray-400">Tongue posture. Press your whole tongue (including the back) against the roof of your mouth. Do not touch your front teeth. This sharpens the jawline over time.</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-black uppercase mb-1 text-white">Hunter Eyes Training</p>
+                            <p class="text-[10px] text-gray-400">Squinch (not squint). Tighten the lower eyelid muscles slightly to develop the 'orbicularis oculi' muscle.</p>
+                        </div>
+                        <div>
+                            <p class="text-xs font-black uppercase mb-1 text-white">Posture: Forward Head</p>
+                            <p class="text-[10px] text-gray-400">Do "Chin Tucks" daily. Pull your head back until you have a double chin. Hold 5s. Repeat 10x. This fixes "Nerd Neck."</p>
                         </div>
                     </div>
                 </div>
@@ -107,28 +174,28 @@
 
         <!-- AI LAB SECTION -->
         <section id="section-ai" class="content-section hidden">
-            <h1 class="text-4xl font-black mb-10 uppercase italic">✨ AI Analysis Lab</h1>
-            <div id="aiWarning" class="bg-amber-50 border border-amber-200 p-4 rounded-xl mb-8 text-amber-800 text-sm hidden">
-                Vault key missing. Click the gear icon to set your API Key.
+            <h1 class="text-5xl font-black mb-12 uppercase italic tracking-tighter">AI Lab</h1>
+            <div id="aiWarning" class="p-4 border border-white/20 text-white text-[10px] font-black uppercase tracking-widest mb-8 hidden">
+                Vault Status: Locked. Access Key Required.
             </div>
             
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div class="bg-white p-8 rounded-3xl border border-stone-200 shadow-xl">
-                    <h3 class="text-xl font-bold mb-4">📸 Face Scan</h3>
-                    <input type="file" id="imageInput" class="mb-4 block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:bg-emerald-50 file:text-emerald-700">
-                    <button id="scanBtn" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-black uppercase text-sm hover:bg-black transition-all">
-                        Analyze Profile <span id="scanLoader" class="loader ml-2 hidden"></span>
+                <div class="card p-8">
+                    <h3 class="text-xl font-black mb-6 uppercase italic">Visual Mog Analysis</h3>
+                    <input type="file" id="imageInput" class="mb-6 block w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-white file:text-black file:font-black file:uppercase">
+                    <button id="scanBtn" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-gray-200 transition-all flex items-center justify-center gap-3">
+                        Execute Scan <span id="scanLoader" class="loader ml-2 hidden"></span>
                     </button>
-                    <div id="aiResult" class="mt-6 p-6 bg-stone-50 rounded-2xl text-sm border border-stone-200 hidden leading-relaxed"></div>
+                    <div id="aiResult" class="mt-8 p-6 bg-white/5 rounded-2xl text-[11px] border border-white/10 hidden leading-relaxed text-gray-400 font-mono"></div>
                 </div>
 
-                <div class="bg-white p-8 rounded-3xl border border-stone-200 shadow-xl">
-                    <h3 class="text-xl font-bold mb-4">💬 Routine Audit</h3>
-                    <textarea id="aiChatInput" placeholder="Describe your plateau..." class="w-full h-32 p-4 bg-stone-50 border rounded-2xl mb-4 text-sm resize-none"></textarea>
-                    <button id="chatBtn" class="w-full bg-emerald-600 text-white py-4 rounded-2xl font-black uppercase text-sm hover:bg-emerald-700">
-                        Optimize <span id="chatLoader" class="loader ml-2 hidden"></span>
+                <div class="card p-8">
+                    <h3 class="text-xl font-black mb-6 uppercase italic">Routine Audit</h3>
+                    <textarea id="aiChatInput" placeholder="Input specific bottleneck..." class="w-full h-32 p-4 bg-black border border-white/10 rounded-2xl mb-4 text-xs text-white outline-none focus:border-white transition-all resize-none"></textarea>
+                    <button id="chatBtn" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-gray-200">
+                        Process Query <span id="chatLoader" class="loader ml-2 hidden"></span>
                     </button>
-                    <div id="chatResult" class="mt-6 p-6 bg-stone-50 rounded-2xl text-sm border border-stone-200 hidden leading-relaxed"></div>
+                    <div id="chatResult" class="mt-8 p-6 bg-white/5 rounded-2xl text-[11px] border border-white/10 hidden leading-relaxed text-gray-400 font-mono"></div>
                 </div>
             </div>
         </section>
@@ -139,8 +206,7 @@
         let apiKey = localStorage.getItem('apex_gemini_key') || "";
 
         function toggleSettings() {
-            const modal = document.getElementById('settingsModal');
-            modal.classList.toggle('hidden');
+            document.getElementById('settingsModal').classList.toggle('hidden');
         }
 
         function saveApiKey() {
@@ -157,18 +223,43 @@
             else warning.classList.add('hidden');
         }
 
-        const tasks = {
-            foundation: ["1 Gallon Water", "No Sugar", "AM/PM Skincare", "Posture Check", "Push Session"],
-            acceleration: ["1 Gallon Water", "IF 16:8", "Face Icing", "Neck Training", "Pull Session"],
-            solidification: ["1 Gallon Water", "High Protein", "Tretinoin PM", "V-Taper Lift", "Legs/Core"]
+        // 60 DAY EXPANDED TASKS
+        const phaseTasks = {
+            foundation: [
+                "Drink 4L Water (Flush bloat)",
+                "No Added Sugar (Face inflammation)",
+                "AM: Cleanse + SPF (Skin shield)",
+                "PM: Cleanse + Tretinoin/Moisturize",
+                "Mewing: 1hr Total Focused Tension",
+                "Weight Training: 45m Focused Intensity",
+                "Chin Tucks: 3 sets of 10 (Fix posture)"
+            ],
+            acceleration: [
+                "Drink 4L Water (Maintain hydration)",
+                "Intermittent Fasting (16:8 window)",
+                "AM: Ice Face (Morning de-bloat)",
+                "PM: Tretinoin + Castor Oil on brows",
+                "Neck Training: 3 sets of 15 extensions",
+                "Lower Eyelid 'Squinches' (Eye area)",
+                "30m High Protein Meal (Anabolic window)"
+            ],
+            transcendence: [
+                "Drink 5L Water (Max clarity)",
+                "Zero Alcohol / Zero Dairy (Clean face)",
+                "Dermastamp: 0.5mm weekly session",
+                "Deep Mewing: Vacuum swallow technique",
+                "V-Taper Workout (Back/Shoulders focus)",
+                "Cold Shower 3m (Metabolic boost)",
+                "Sleep 8hrs (Growth Hormone peak)"
+            ]
         };
 
         function renderCalendar() {
             const grid = document.getElementById('calendarGrid');
             grid.innerHTML = '';
-            for (let i = 1; i <= 30; i++) {
+            for (let i = 1; i <= 60; i++) {
                 const btn = document.createElement('button');
-                btn.className = `day-btn aspect-square rounded-2xl border-2 font-black ${i === currentDay ? 'active-day' : 'bg-white border-stone-100 text-stone-300'}`;
+                btn.className = `day-btn aspect-square rounded-lg font-black text-[10px] ${i === currentDay ? 'active-day' : ''}`;
                 btn.textContent = i.toString().padStart(2, '0');
                 btn.onclick = () => selectDay(i);
                 grid.appendChild(btn);
@@ -178,36 +269,57 @@
         function selectDay(day) {
             currentDay = day;
             renderCalendar();
-            document.getElementById('dayTitle').textContent = `Day ${day}`;
-            document.getElementById('statDay').textContent = `${day.toString().padStart(2, '0')} / 30`;
-            const phase = day <= 10 ? 'foundation' : day <= 20 ? 'acceleration' : 'solidification';
-            document.getElementById('currentPhaseLabel').textContent = phase;
+            document.getElementById('dayTitle').textContent = `Day ${day.toString().padStart(2, '0')}`;
+            document.getElementById('statDay').textContent = day.toString().padStart(2, '0');
+            
+            let phase = "";
+            if (day <= 20) phase = 'foundation';
+            else if (day <= 40) phase = 'acceleration';
+            else phase = 'transcendence';
+            
+            document.getElementById('currentPhaseLabel').textContent = phase.charAt(0).toUpperCase() + phase.slice(1);
+            
             const list = document.getElementById('taskList');
-            list.innerHTML = tasks[phase].map(t => `<li class="flex items-center gap-4 p-4 bg-stone-50 rounded-2xl border border-stone-100"><input type="checkbox" class="h-5 w-5 accent-emerald-600 font-bold"><span class="text-sm font-bold text-slate-600">${t}</span></li>`).join('');
+            list.innerHTML = phaseTasks[phase].map(t => `
+                <li class="flex items-start gap-4 p-4 bg-white/5 rounded-2xl border border-white/5 group hover:border-white/20 transition-all">
+                    <input type="checkbox" class="mt-1 h-5 w-5 bg-black border-2 border-white/20 rounded-md checked:bg-white checked:border-white appearance-none cursor-pointer transition-all">
+                    <span class="text-[11px] font-bold text-gray-400 group-hover:text-white transition-colors">${t}</span>
+                </li>
+            `).join('');
         }
 
+        // IMPROVED AI LOGIC
         async function callGemini(prompt, imageData = null) {
             if (!apiKey) return "KEY_MISSING";
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const model = "gemini-1.5-flash"; // Stable production model
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+            
             const contents = [{ parts: [{ text: prompt }] }];
-            if (imageData) contents[0].parts.push({ inlineData: { mimeType: "image/png", data: imageData.split(',')[1] } });
+            if (imageData) {
+                contents[0].parts.push({ inlineData: { mimeType: "image/jpeg", data: imageData.split(',')[1] } });
+            }
 
-            const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents }) });
-            const data = await response.json();
-            return data.candidates?.[0]?.content?.parts?.[0]?.text || "Error processing request.";
+            try {
+                const response = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ contents }) });
+                const data = await response.json();
+                if (data.error) return `Error: ${data.error.message}`;
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || "No data received.";
+            } catch (e) { return "Network failure."; }
         }
 
         document.getElementById('scanBtn').onclick = async () => {
             const file = document.getElementById('imageInput').files[0];
             if (!file) return;
-            document.getElementById('scanLoader').classList.remove('hidden');
+            const loader = document.getElementById('scanLoader');
+            const resDiv = document.getElementById('aiResult');
+            loader.classList.remove('hidden');
+            
             const reader = new FileReader();
             reader.onload = async (e) => {
-                const res = await callGemini("Critique this face for looksmaxxing. Focus on skin clarity, eyebrow density, and facial bloat. Give 3 technical tips.", e.target.result);
-                const resDiv = document.getElementById('aiResult');
-                resDiv.innerText = res === "KEY_MISSING" ? "Set API Key in Settings." : res;
+                const res = await callGemini("Analyze this face for physical optimization. Focus on: Skin health, Eye area muscle development, and Facial bloating. Provide 3 high-intensity technical tips to improve the 'mog' factor.", e.target.result);
+                resDiv.innerText = res === "KEY_MISSING" ? "Vault Locked. Set Key." : res;
                 resDiv.classList.remove('hidden');
-                document.getElementById('scanLoader').classList.add('hidden');
+                loader.classList.add('hidden');
             };
             reader.readAsDataURL(file);
         };
@@ -215,14 +327,16 @@
         document.getElementById('chatBtn').onclick = async () => {
             const input = document.getElementById('aiChatInput').value;
             if (!input) return;
-            document.getElementById('chatLoader').classList.remove('hidden');
-            const res = await callGemini(`Suggest a high-performance routine adjustment for: ${input}. Use professional optimization terms.`);
+            const loader = document.getElementById('chatLoader');
             const resDiv = document.getElementById('chatResult');
-            resDiv.innerText = res === "KEY_MISSING" ? "Set API Key in Settings." : res;
+            loader.classList.remove('hidden');
+            const res = await callGemini(`Provide an advanced, scientific adjustment for this physical bottleneck: ${input}. Use professional optimization terminology.`);
+            resDiv.innerText = res === "KEY_MISSING" ? "Vault Locked. Set Key." : res;
             resDiv.classList.remove('hidden');
-            document.getElementById('chatLoader').classList.add('hidden');
+            loader.classList.add('hidden');
         };
 
+        // NAV SWITCHER
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.onclick = () => {
                 document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -236,10 +350,14 @@
             renderCalendar();
             selectDay(1);
             updateAiWarning();
-            new Chart(document.getElementById('macroChart'), {
+            const ctx = document.getElementById('macroChart').getContext('2d');
+            new Chart(ctx, {
                 type: 'doughnut',
-                data: { labels: ['P', 'F', 'C'], datasets: [{ data: [40, 30, 30], backgroundColor: ['#10b981', '#fbbf24', '#e2e8f0'], borderWidth: 0 }] },
-                options: { cutout: '70%', plugins: { legend: { display: false } } }
+                data: {
+                    labels: ['P', 'F', 'C'],
+                    datasets: [{ data: [45, 25, 30], backgroundColor: ['#fff', '#666', '#222'], borderWidth: 0 }]
+                },
+                options: { cutout: '80%', plugins: { legend: { display: false } } }
             });
         };
     </script>
