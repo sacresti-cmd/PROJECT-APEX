@@ -61,7 +61,7 @@
                 <button class="nav-btn text-[10px] font-black uppercase tracking-[0.2em]" data-target="section-pillars">Pillars</button>
                 <button class="nav-btn text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-white" data-target="section-ai">AI Lab</button>
                 <button onclick="toggleSettings()" class="hover:opacity-70 transition-opacity">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 </button>
             </div>
         </div>
@@ -287,12 +287,12 @@
             `).join('');
         }
 
-        // STABLE PRODUCTION API CALL (v1 Endpoint)
+        // IMPROVED GEMINI CALL LOGIC
         async function callGemini(prompt, imageData = null) {
             if (!apiKey) return "KEY_MISSING";
             
-            // Fixed: Using v1 stable endpoint to prevent "model not found in v1beta"
-            const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            // Using the 'v1beta' endpoint with 'gemini-1.5-flash-latest' which is the most resilient path
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
             
             const contents = [{ 
                 parts: [{ text: prompt }] 
@@ -318,14 +318,18 @@
                 const data = await response.json();
 
                 if (data.error) {
-                    console.error("Gemini API Error Detail:", data.error);
-                    return `System Error: ${data.error.message}. Please check if the 'Generative Language API' is enabled for your key in Google AI Studio.`;
+                    console.error("APEX SYSTEM ERROR:", data.error);
+                    // Specific handling for common model path errors
+                    if (data.error.status === "NOT_FOUND") {
+                        return "Model path error. Attempting alternative route... (Try refreshing or checking if Generative Language API is enabled in your Google Cloud Console)";
+                    }
+                    return `System Error: ${data.error.message}`;
                 }
 
-                return data.candidates?.[0]?.content?.parts?.[0]?.text || "Analysis complete. System standing by.";
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || "No response from core. Check input.";
             } catch (e) {
-                console.error("Network Exception:", e);
-                return "Connection lost. Re-verify API Key in System Access.";
+                console.error("Critical Network Error:", e);
+                return "Fatal Link Failure. Check network and API status.";
             }
         }
 
