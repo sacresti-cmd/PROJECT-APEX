@@ -186,7 +186,7 @@
                     <button id="scanBtn" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-gray-200 transition-all flex items-center justify-center gap-3">
                         Execute Scan <span id="scanLoader" class="loader ml-2 hidden"></span>
                     </button>
-                    <div id="aiResult" class="mt-8 p-6 bg-white/5 rounded-2xl text-[11px] border border-white/10 hidden leading-relaxed text-gray-400 font-mono"></div>
+                    <div id="aiResult" class="mt-8 p-6 bg-white/5 rounded-2xl text-[11px] border border-white/10 hidden leading-relaxed text-gray-400 font-mono whitespace-pre-wrap"></div>
                 </div>
 
                 <div class="card p-8">
@@ -195,7 +195,7 @@
                     <button id="chatBtn" class="w-full bg-white text-black py-4 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-gray-200">
                         Process Query <span id="chatLoader" class="loader ml-2 hidden"></span>
                     </button>
-                    <div id="chatResult" class="mt-8 p-6 bg-white/5 rounded-2xl text-[11px] border border-white/10 hidden leading-relaxed text-gray-400 font-mono"></div>
+                    <div id="chatResult" class="mt-8 p-6 bg-white/5 rounded-2xl text-[11px] border border-white/10 hidden leading-relaxed text-gray-400 font-mono whitespace-pre-wrap"></div>
                 </div>
             </div>
         </section>
@@ -287,11 +287,14 @@
             `).join('');
         }
 
-        // IMPROVED GEMINI CALL LOGIC
+        /**
+         * UPDATED CORE API CALLER
+         * Uses v1beta and gemini-1.5-flash-latest for maximum compatibility.
+         */
         async function callGemini(prompt, imageData = null) {
             if (!apiKey) return "KEY_MISSING";
             
-            // Using the 'v1beta' endpoint with 'gemini-1.5-flash-latest' which is the most resilient path
+            // v1beta is often required for the "-latest" alias on standard API keys
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
             
             const contents = [{ 
@@ -318,18 +321,21 @@
                 const data = await response.json();
 
                 if (data.error) {
-                    console.error("APEX SYSTEM ERROR:", data.error);
-                    // Specific handling for common model path errors
-                    if (data.error.status === "NOT_FOUND") {
-                        return "Model path error. Attempting alternative route... (Try refreshing or checking if Generative Language API is enabled in your Google Cloud Console)";
+                    console.error("APEX DIAGNOSTIC:", data.error);
+                    // Provide a cleaner troubleshooting message to the user
+                    if (data.error.message.includes("not found")) {
+                        return "SYSTEM ERROR: The model identifier was rejected. Ensure the 'Generative Language API' is enabled in your Google Cloud Project at console.cloud.google.com.";
                     }
-                    return `System Error: ${data.error.message}`;
+                    if (data.error.status === "PERMISSION_DENIED") {
+                        return "ACCESS DENIED: Your API key is valid but does not have permission for Gemini 1.5 Flash. Check your API dashboard.";
+                    }
+                    return `Error [${data.error.code}]: ${data.error.message}`;
                 }
 
-                return data.candidates?.[0]?.content?.parts?.[0]?.text || "No response from core. Check input.";
+                return data.candidates?.[0]?.content?.parts?.[0]?.text || "System returned empty response. Logic failed.";
             } catch (e) {
-                console.error("Critical Network Error:", e);
-                return "Fatal Link Failure. Check network and API status.";
+                console.error("Fatal Fetch Error:", e);
+                return "FATAL ERROR: Failed to reach Google servers. Check your internet connection or browser security settings (CORS).";
             }
         }
 
@@ -338,12 +344,14 @@
             if (!file) return;
             const loader = document.getElementById('scanLoader');
             const resDiv = document.getElementById('aiResult');
+            
+            resDiv.classList.add('hidden');
             loader.classList.remove('hidden');
             
             const reader = new FileReader();
             reader.onload = async (e) => {
                 const res = await callGemini("Analyze this face for physical optimization. Focus on: Skin health, Eye area muscle development, and Facial bloating. Provide 3 high-intensity technical tips to improve aesthetic appeal based on these traits.", e.target.result);
-                resDiv.innerText = res === "KEY_MISSING" ? "Vault Locked. Set Key." : res;
+                resDiv.innerText = res === "KEY_MISSING" ? "Vault Locked. Set Key in Settings." : res;
                 resDiv.classList.remove('hidden');
                 loader.classList.add('hidden');
             };
@@ -355,14 +363,17 @@
             if (!input) return;
             const loader = document.getElementById('chatLoader');
             const resDiv = document.getElementById('chatResult');
+            
+            resDiv.classList.add('hidden');
             loader.classList.remove('hidden');
+            
             const res = await callGemini(`Provide an advanced, scientific adjustment for this physical bottleneck: ${input}. Use professional optimization terminology.`);
-            resDiv.innerText = res === "KEY_MISSING" ? "Vault Locked. Set Key." : res;
+            resDiv.innerText = res === "KEY_MISSING" ? "Vault Locked. Set Key in Settings." : res;
             resDiv.classList.remove('hidden');
             loader.classList.add('hidden');
         };
 
-        // NAV SWITCHER
+        // NAVIGATION LOGIC
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.onclick = () => {
                 document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -376,6 +387,7 @@
             renderCalendar();
             selectDay(1);
             updateAiWarning();
+            
             const ctx = document.getElementById('macroChart').getContext('2d');
             new Chart(ctx, {
                 type: 'doughnut',
